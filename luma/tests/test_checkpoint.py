@@ -1,11 +1,11 @@
 """Tests for checkpoint management."""
 
-import pytest
-from pathlib import Path
 import tempfile
 
-from luma.pipeline.checkpoint import CheckpointManager
+import pytest
+
 from luma.models.checkpoint import PipelineStage
+from luma.pipeline.checkpoint import CheckpointManager
 
 
 @pytest.fixture

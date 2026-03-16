@@ -1,8 +1,7 @@
 """Checkpoint and pipeline state models."""
 
-from enum import Enum
-from typing import Optional
 from datetime import datetime
+from enum import Enum
 
 from pydantic import BaseModel, Field, field_validator
 
@@ -22,11 +21,11 @@ class PipelineStage(str, Enum):
 class ProcessingError(BaseModel):
     """A processing error record."""
 
-    anime_id: Optional[int] = Field(None, description="Anime ID that failed")
+    anime_id: int | None = Field(None, description="Anime ID that failed")
     stage: PipelineStage = Field(..., description="Stage where error occurred")
     error_type: str = Field(..., description="Type of error")
     error_message: str = Field(..., description="Error message")
-    stack_trace: Optional[str] = Field(None, description="Stack trace")
+    stack_trace: str | None = Field(None, description="Stack trace")
     timestamp: datetime = Field(default_factory=datetime.utcnow)
 
 
@@ -47,8 +46,8 @@ class PipelineStats(BaseModel):
     unmatched: int = Field(default=0, description="Items without match")
 
     # Timing
-    start_time: Optional[datetime] = Field(None, description="Pipeline start time")
-    end_time: Optional[datetime] = Field(None, description="Pipeline end time")
+    start_time: datetime | None = Field(None, description="Pipeline start time")
+    end_time: datetime | None = Field(None, description="Pipeline end time")
 
     @property
     def progress_percent(self) -> float:
@@ -58,7 +57,7 @@ class PipelineStats(BaseModel):
         return (self.processed / self.total) * 100
 
     @property
-    def duration_seconds(self) -> Optional[float]:
+    def duration_seconds(self) -> float | None:
         """Pipeline duration in seconds."""
         if self.start_time and self.end_time:
             return (self.end_time - self.start_time).total_seconds()

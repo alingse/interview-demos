@@ -1,8 +1,8 @@
 """Wikidata matching models."""
 
-from enum import Enum
-from typing import Optional, Any
 from datetime import datetime
+from enum import Enum
+from typing import Any
 
 from pydantic import BaseModel, Field
 
@@ -20,8 +20,8 @@ class MatchMethod(str, Enum):
 class MatchResult(BaseModel):
     """Result of Wikidata matching."""
 
-    wikidata_id: Optional[str] = Field(None, description="Wikidata Q-ID")
-    wikidata_label: Optional[str] = Field(None, description="Wikidata label")
+    wikidata_id: str | None = Field(None, description="Wikidata Q-ID")
+    wikidata_label: str | None = Field(None, description="Wikidata label")
     confidence: float = Field(..., ge=0.0, le=1.0, description="Match confidence")
     match_method: MatchMethod = Field(..., description="How the match was made")
     match_metadata: dict[str, Any] = Field(default_factory=dict, description="Additional metadata")
@@ -46,9 +46,9 @@ class MatchDB(BaseModel):
 
     id: int
     anime_id: int
-    wikidata_id: Optional[str] = None
-    wikidata_label: Optional[str] = None
+    wikidata_id: str | None = None
+    wikidata_label: str | None = None
     confidence: float
     match_method: str
-    match_metadata: Optional[str] = None  # JSON string
-    created_at: Optional[datetime] = None
+    match_metadata: str | None = None  # JSON string
+    created_at: datetime | None = None

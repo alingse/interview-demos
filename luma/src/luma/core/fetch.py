@@ -2,7 +2,7 @@
 
 import asyncio
 import logging
-from typing import Optional, AsyncIterator
+from collections.abc import AsyncIterator
 
 from luma.infrastructure.http_client import JikanClient
 from luma.infrastructure.rate_limiter import RateLimiter
@@ -18,13 +18,13 @@ class AnimeFetcher:
 
     def __init__(
         self,
-        rate_limiter: Optional[RateLimiter] = None,
-        client: Optional[JikanClient] = None,
+        rate_limiter: RateLimiter | None = None,
+        client: JikanClient | None = None,
     ):
         self.rate_limiter = rate_limiter or RateLimiter(rate=self.JIKAN_API_RATE)
         self.client = client or JikanClient()
 
-    async def fetch_anime(self, anime_id: int) -> Optional[Anime]:
+    async def fetch_anime(self, anime_id: int) -> Anime | None:
         """Fetch a single anime by MAL ID.
 
         Args:
@@ -51,7 +51,7 @@ class AnimeFetcher:
         self,
         anime_ids: list[int],
         batch_size: int = 10,
-    ) -> list[Optional[Anime]]:
+    ) -> list[Anime | None]:
         """Fetch multiple anime in batches.
 
         Args:
@@ -61,10 +61,10 @@ class AnimeFetcher:
         Returns:
             List of Anime objects (None for failed fetches)
         """
-        results: list[Optional[Anime]] = []
+        results: list[Anime | None] = []
 
         for i in range(0, len(anime_ids), batch_size):
-            batch = anime_ids[i:i + batch_size]
+            batch = anime_ids[i : i + batch_size]
 
             # Fetch batch concurrently with rate limiting
             tasks = [self.fetch_anime(aid) for aid in batch]
@@ -100,7 +100,7 @@ class AnimeFetcher:
             if anime is not None:
                 yield anime
 
-    def _parse_anime(self, data: dict) -> Optional[Anime]:
+    def _parse_anime(self, data: dict) -> Anime | None:
         """Parse API response into Anime model.
 
         Args:
@@ -110,7 +110,7 @@ class AnimeFetcher:
             Anime object or None if parsing fails
         """
         try:
-            from luma.models.anime import AnimeType, AnimeSource
+            from luma.models.anime import AnimeSource, AnimeType  # noqa: F401
 
             # Extract titles
             titles = data.get("titles", [])

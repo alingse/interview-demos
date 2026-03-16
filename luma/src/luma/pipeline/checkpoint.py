@@ -5,9 +5,13 @@ import logging
 import uuid
 from datetime import datetime
 from pathlib import Path
-from typing import Optional
 
-from luma.models.checkpoint import CheckpointState, PipelineStage, ProcessingError, PipelineStats
+from luma.models.checkpoint import (
+    CheckpointState,
+    PipelineStage,
+    PipelineStats,
+    ProcessingError,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -80,8 +84,10 @@ class CheckpointManager:
                 "quality_failed": state.stats.quality_failed,
                 "matched": state.stats.matched,
                 "unmatched": state.stats.unmatched,
-                "start_time": state.stats.start_time.isoformat() if state.stats.start_time else None,
-                "end_time": state.stats.end_time.isoformat() if state.stats.end_time else None,
+                "start_time": (
+                    state.stats.start_time.isoformat() if state.stats.start_time else None
+                ),
+                "end_time": (state.stats.end_time.isoformat() if state.stats.end_time else None),
             },
             "errors": [
                 {
@@ -115,7 +121,7 @@ class CheckpointManager:
             if temp_path.exists():
                 temp_path.unlink()
 
-    def load(self) -> Optional[CheckpointState]:
+    def load(self) -> CheckpointState | None:
         """Load checkpoint state from file.
 
         Returns:
@@ -125,7 +131,7 @@ class CheckpointManager:
             return None
 
         try:
-            with open(self.checkpoint_path, "r") as f:
+            with open(self.checkpoint_path) as f:
                 data = json.load(f)
 
             stats_data = data.pop("stats", {})
@@ -151,8 +157,16 @@ class CheckpointManager:
                     quality_failed=stats_data.get("quality_failed", 0),
                     matched=stats_data.get("matched", 0),
                     unmatched=stats_data.get("unmatched", 0),
-                    start_time=datetime.fromisoformat(stats_data["start_time"]) if stats_data.get("start_time") else None,
-                    end_time=datetime.fromisoformat(stats_data["end_time"]) if stats_data.get("end_time") else None,
+                    start_time=(
+                        datetime.fromisoformat(stats_data["start_time"])
+                        if stats_data.get("start_time")
+                        else None
+                    ),
+                    end_time=(
+                        datetime.fromisoformat(stats_data["end_time"])
+                        if stats_data.get("end_time")
+                        else None
+                    ),
                 ),
                 errors=[
                     ProcessingError(
@@ -223,11 +237,11 @@ class CheckpointManager:
     def add_error(
         self,
         state: CheckpointState,
-        anime_id: Optional[int],
+        anime_id: int | None,
         stage: PipelineStage,
         error_type: str,
         error_message: str,
-        stack_trace: Optional[str] = None,
+        stack_trace: str | None = None,
     ) -> None:
         """Add error to checkpoint state.
 

@@ -1,8 +1,7 @@
 """Anime data models."""
 
-from enum import Enum
-from typing import Optional
 from datetime import datetime
+from enum import Enum
 
 from pydantic import BaseModel, Field, field_validator
 
@@ -39,27 +38,27 @@ class Anime(BaseModel):
 
     mal_id: int = Field(..., description="MyAnimeList ID")
     title: str = Field(..., description="Main title")
-    title_japanese: Optional[str] = Field(None, description="Japanese title")
-    title_english: Optional[str] = Field(None, description="English title")
+    title_japanese: str | None = Field(None, description="Japanese title")
+    title_english: str | None = Field(None, description="English title")
     titles: list[dict] = Field(default_factory=list, description="All titles")
 
-    episodes: Optional[int] = Field(None, description="Number of episodes")
-    score: Optional[float] = Field(None, ge=0, le=10, description="MAL score")
-    year: Optional[int] = Field(None, description="Release year")
+    episodes: int | None = Field(None, description="Number of episodes")
+    score: float | None = Field(None, ge=0, le=10, description="MAL score")
+    year: int | None = Field(None, description="Release year")
 
     type: AnimeType = Field(default=AnimeType.UNKNOWN, description="Anime type")
     source: AnimeSource = Field(default=AnimeSource.UNKNOWN, description="Source material")
 
     studios: list[str] = Field(default_factory=list, description="Studios")
     genres: list[str] = Field(default_factory=list, description="Genres")
-    synopsis: Optional[str] = Field(None, description="Synopsis")
+    synopsis: str | None = Field(None, description="Synopsis")
 
-    aired: Optional[dict] = Field(None, description="Aired date info")
-    duration: Optional[str] = Field(None, description="Duration")
-    rating: Optional[str] = Field(None, description="Age rating")
+    aired: dict | None = Field(None, description="Aired date info")
+    duration: str | None = Field(None, description="Duration")
+    rating: str | None = Field(None, description="Age rating")
 
-    url: Optional[str] = Field(None, description="MAL URL")
-    images: Optional[dict] = Field(None, description="Image URLs")
+    url: str | None = Field(None, description="MAL URL")
+    images: dict | None = Field(None, description="Image URLs")
 
     @field_validator("title")
     @classmethod
@@ -71,7 +70,7 @@ class Anime(BaseModel):
 
     @field_validator("episodes")
     @classmethod
-    def validate_episodes(cls, v: Optional[int]) -> Optional[int]:
+    def validate_episodes(cls, v: int | None) -> int | None:
         """Validate episodes are within valid range."""
         if v is not None and (v < 1 or v > 2000):
             raise ValueError("Episodes must be between 1 and 2000")
@@ -79,7 +78,7 @@ class Anime(BaseModel):
 
     @field_validator("year")
     @classmethod
-    def validate_year(cls, v: Optional[int]) -> Optional[int]:
+    def validate_year(cls, v: int | None) -> int | None:
         """Validate year is reasonable."""
         from datetime import datetime
 
@@ -95,16 +94,16 @@ class AnimeDB(BaseModel):
     id: int
     mal_id: int
     title: str
-    title_japanese: Optional[str] = None
-    title_english: Optional[str] = None
-    episodes: Optional[int] = None
-    score: Optional[float] = None
-    year: Optional[int] = None
-    type: Optional[str] = None
-    source: Optional[str] = None
-    studios: Optional[str] = None  # JSON string
-    genres: Optional[str] = None  # JSON string
-    synopsis: Optional[str] = None
+    title_japanese: str | None = None
+    title_english: str | None = None
+    episodes: int | None = None
+    score: float | None = None
+    year: int | None = None
+    type: str | None = None
+    source: str | None = None
+    studios: str | None = None  # JSON string
+    genres: str | None = None  # JSON string
+    synopsis: str | None = None
     processing_status: str = "pending"
-    created_at: Optional[datetime] = None
-    updated_at: Optional[datetime] = None
+    created_at: datetime | None = None
+    updated_at: datetime | None = None

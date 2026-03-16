@@ -1,6 +1,6 @@
 """Utility functions."""
 
-from luma.utils.logging import setup_logging
 from luma.utils.helpers import batched
+from luma.utils.logging import setup_logging
 
-__all__ = ["setup_logging", "batched"]
+__all__ = ["batched", "setup_logging"]

@@ -1,14 +1,10 @@
 """Async SQLite database connection and operations."""
 
-import aiosqlite
 import json
-import sqlite3
 from contextlib import asynccontextmanager
 from pathlib import Path
-from typing import Optional, Any, List
-from datetime import datetime
 
-from pydantic import BaseModel
+import aiosqlite
 
 
 class Database:
@@ -16,7 +12,7 @@ class Database:
 
     def __init__(self, db_path: str | Path = "data/anime.db"):
         self.db_path = Path(db_path)
-        self._connection: Optional[aiosqlite.Connection] = None
+        self._connection: aiosqlite.Connection | None = None
 
     async def connect(self) -> aiosqlite.Connection:
         """Create database connection and initialize schema."""
@@ -128,16 +124,16 @@ class Database:
         self,
         mal_id: int,
         title: str,
-        title_japanese: Optional[str] = None,
-        title_english: Optional[str] = None,
-        episodes: Optional[int] = None,
-        score: Optional[float] = None,
-        year: Optional[int] = None,
-        type_: Optional[str] = None,
-        source: Optional[str] = None,
-        studios: Optional[List[str]] = None,
-        genres: Optional[List[str]] = None,
-        synopsis: Optional[str] = None,
+        title_japanese: str | None = None,
+        title_english: str | None = None,
+        episodes: int | None = None,
+        score: float | None = None,
+        year: int | None = None,
+        type_: str | None = None,
+        source: str | None = None,
+        studios: list[str] | None = None,
+        genres: list[str] | None = None,
+        synopsis: str | None = None,
         processing_status: str = "pending",
     ) -> int:
         """Insert or update anime record.
@@ -149,7 +145,8 @@ class Database:
             studios_json = json.dumps(studios) if studios else None
             genres_json = json.dumps(genres) if genres else None
 
-            cursor = await conn.execute("""
+            cursor = await conn.execute(
+                """
                 INSERT INTO anime (
                     mal_id, title, title_japanese, title_english,
                     episodes, score, year, type, source,
@@ -170,24 +167,33 @@ class Database:
                     processing_status = excluded.processing_status,
                     updated_at = CURRENT_TIMESTAMP
                 RETURNING id
-            """, (
-                mal_id, title, title_japanese, title_english,
-                episodes, score, year, type_, source,
-                studios_json, genres_json, synopsis, processing_status
-            ))
+            """,
+                (
+                    mal_id,
+                    title,
+                    title_japanese,
+                    title_english,
+                    episodes,
+                    score,
+                    year,
+                    type_,
+                    source,
+                    studios_json,
+                    genres_json,
+                    synopsis,
+                    processing_status,
+                ),
+            )
 
             row = await cursor.fetchone()
             await conn.commit()
             return row[0] if row else cursor.lastrowid
 
-    async def get_anime_by_mal_id(self, mal_id: int) -> Optional[dict]:
+    async def get_anime_by_mal_id(self, mal_id: int) -> dict | None:
         """Get anime by MAL ID."""
         async with self.connection() as conn:
             conn.row_factory = aiosqlite.Row
-            cursor = await conn.execute(
-                "SELECT * FROM anime WHERE mal_id = ?",
-                (mal_id,)
-            )
+            cursor = await conn.execute("SELECT * FROM anime WHERE mal_id = ?", (mal_id,))
             row = await cursor.fetchone()
             if row:
                 return dict(row)
@@ -196,42 +202,49 @@ class Database:
     async def update_anime_status(self, mal_id: int, status: str) -> None:
         """Update anime processing status."""
         async with self.connection() as conn:
-            await conn.execute("""
+            await conn.execute(
+                """
                 UPDATE anime SET processing_status = ?, updated_at = CURRENT_TIMESTAMP
                 WHERE mal_id = ?
-            """, (status, mal_id))
+            """,
+                (status, mal_id),
+            )
             await conn.commit()
 
     async def insert_quality_check(
         self,
         anime_id: int,
         passed: bool,
-        overall_reason: Optional[str] = None,
-        violation_details: Optional[str] = None,
+        overall_reason: str | None = None,
+        violation_details: str | None = None,
     ) -> int:
         """Insert quality check result."""
         async with self.connection() as conn:
-            cursor = await conn.execute("""
+            cursor = await conn.execute(
+                """
                 INSERT INTO quality_checks (anime_id, passed, overall_reason, violation_details)
                 VALUES (?, ?, ?, ?)
-            """, (anime_id, passed, overall_reason, violation_details))
+            """,
+                (anime_id, passed, overall_reason, violation_details),
+            )
             await conn.commit()
             return cursor.lastrowid
 
     async def upsert_match(
         self,
         anime_id: int,
-        wikidata_id: Optional[str],
-        wikidata_label: Optional[str],
+        wikidata_id: str | None,
+        wikidata_label: str | None,
         confidence: float,
         match_method: str,
-        match_metadata: Optional[dict] = None,
+        match_metadata: dict | None = None,
     ) -> int:
         """Insert or update match result."""
         async with self.connection() as conn:
             metadata_json = json.dumps(match_metadata) if match_metadata else None
 
-            cursor = await conn.execute("""
+            cursor = await conn.execute(
+                """
                 INSERT INTO matches (
                     anime_id, wikidata_id, wikidata_label, confidence, match_method, match_metadata
                 ) VALUES (?, ?, ?, ?, ?, ?)
@@ -242,7 +255,9 @@ class Database:
                     match_method = excluded.match_method,
                     match_metadata = excluded.match_metadata
                 RETURNING id
-            """, (anime_id, wikidata_id, wikidata_label, confidence, match_method, metadata_json))
+            """,
+                (anime_id, wikidata_id, wikidata_label, confidence, match_method, metadata_json),
+            )
 
             row = await cursor.fetchone()
             await conn.commit()
@@ -250,18 +265,22 @@ class Database:
 
     async def insert_error(
         self,
-        anime_id: Optional[int],
+        anime_id: int | None,
         stage: str,
         error_type: str,
         error_message: str,
-        stack_trace: Optional[str] = None,
+        stack_trace: str | None = None,
     ) -> int:
         """Insert processing error."""
         async with self.connection() as conn:
-            cursor = await conn.execute("""
-                INSERT INTO processing_errors (anime_id, stage, error_type, error_message, stack_trace)
+            cursor = await conn.execute(
+                """
+                INSERT INTO processing_errors
+                (anime_id, stage, error_type, error_message, stack_trace)
                 VALUES (?, ?, ?, ?, ?)
-            """, (anime_id, stage, error_type, error_message, stack_trace))
+            """,
+                (anime_id, stage, error_type, error_message, stack_trace),
+            )
             await conn.commit()
             return cursor.lastrowid
 
@@ -277,8 +296,8 @@ class Database:
     async def get_anime_for_export(
         self,
         filter_type: str = "all",
-        limit: Optional[int] = None,
-    ) -> List[dict]:
+        limit: int | None = None,
+    ) -> list[dict]:
         """Get anime for export.
 
         Args:
@@ -299,7 +318,7 @@ class Database:
                 WHERE a.processing_status = 'completed'
             """
 
-            params: List = []
+            params: list = []
 
             if filter_type == "matched":
                 query += " AND m.wikidata_id IS NOT NULL"
@@ -322,7 +341,9 @@ class Database:
             cursor = await conn.execute("SELECT COUNT(*) FROM anime")
             stats["total_anime"] = (await cursor.fetchone())[0]
 
-            cursor = await conn.execute("SELECT COUNT(*) FROM anime WHERE processing_status = 'completed'")
+            cursor = await conn.execute(
+                "SELECT COUNT(*) FROM anime WHERE processing_status = 'completed'"
+            )
             stats["completed_anime"] = (await cursor.fetchone())[0]
 
             cursor = await conn.execute("""

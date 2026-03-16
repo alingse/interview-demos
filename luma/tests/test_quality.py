@@ -3,7 +3,7 @@
 import pytest
 
 from luma.core.quality import QualityChecker
-from luma.models.anime import Anime, AnimeType, AnimeSource
+from luma.models.anime import Anime
 from luma.models.quality import QualityRule
 
 
@@ -67,7 +67,9 @@ def test_quality_check_invalid_episodes():
     result = checker.check(anime)
 
     assert result.passed is False
-    assert any(v.rule == QualityRule.VALUE_RANGE and v.field == "episodes" for v in result.violations)
+    assert any(
+        v.rule == QualityRule.VALUE_RANGE and v.field == "episodes" for v in result.violations
+    )
 
 
 def test_quality_check_invalid_year():

@@ -4,25 +4,21 @@ import asyncio
 import json
 import sys
 from pathlib import Path
-from typing import Optional
 
 import click
 
 from luma.config.settings import Settings
-from luma.utils.logging import setup_logging
-
+from luma.core.fetch import AnimeFetcher
+from luma.core.match import WikidataMatcher
+from luma.core.quality import QualityChecker
+from luma.core.storage import Storage
 from luma.infrastructure.database import Database
 from luma.infrastructure.http_client import JikanClient
 from luma.infrastructure.rate_limiter import RateLimiter
-
-from luma.core.fetch import AnimeFetcher
-from luma.core.quality import QualityChecker
-from luma.core.match import WikidataMatcher
-from luma.core.storage import Storage
-
 from luma.pipeline.checkpoint import CheckpointManager
 from luma.pipeline.orchestrator import PipelineOrchestrator
 from luma.pipeline.reporter import PipelineReporter
+from luma.utils.logging import setup_logging
 
 
 def get_settings() -> Settings:
@@ -39,7 +35,10 @@ def create_pipeline_components(settings: Settings):
     # Infrastructure
     db = Database(settings.db_path)
     rate_limiter = RateLimiter(rate=settings.jikan_api_rate)
-    http_client = JikanClient(timeout=settings.jikan_timeout, max_retries=settings.jikan_max_retries)
+    http_client = JikanClient(
+        timeout=settings.jikan_timeout,
+        max_retries=settings.jikan_max_retries,
+    )
 
     # Core
     fetcher = AnimeFetcher(rate_limiter=rate_limiter, client=http_client)
@@ -78,7 +77,14 @@ def cli():
 @click.option("--concurrent", type=int, default=5, help="Concurrent operations (default: 5)")
 @click.option("--rate-limit", type=float, default=3.0, help="API rate limit req/s (default: 3.0)")
 @click.option("--resume", is_flag=True, help="Resume from checkpoint")
-def run(start_id: int, end_id: int, batch_size: int, concurrent: int, rate_limit: float, resume: bool):
+def run(
+    start_id: int,
+    end_id: int,
+    batch_size: int,
+    concurrent: int,
+    rate_limit: float,
+    resume: bool,
+):
     """Run the anime metadata pipeline."""
     settings = get_settings()
     settings.batch_size = batch_size
@@ -162,10 +168,14 @@ def resume(batch_size: int, concurrent: int, rate_limit: float):
 
 @cli.command()
 @click.option("--output", type=str, default="output/anime.jsonl", help="Output file path")
-@click.option("--filter", type=click.Choice(["all", "matched", "unmatched"], case_sensitive=False),
-              default="all", help="Filter type (all, matched, unmatched)")
+@click.option(
+    "--filter",
+    type=click.Choice(["all", "matched", "unmatched"], case_sensitive=False),
+    default="all",
+    help="Filter type (all, matched, unmatched)",
+)
 @click.option("--limit", type=int, default=None, help="Maximum records to export")
-def export(output: str, filter: str, limit: Optional[int]):
+def export(output: str, filter: str, limit: int | None):
     """Export anime data to JSONL."""
     settings = get_settings()
     settings.ensure_directories()
@@ -237,8 +247,10 @@ def status():
                     click.echo("-" * 40)
                     click.echo(f"ID: {state.checkpoint_id}")
                     click.echo(f"Range: {state.start_id} - {state.end_id}")
-                    click.echo(f"Progress: {len(state.processed_ids)}/{state.total_count} "
-                               f"({state.get_progress_summary()['percent']}%)")
+                    click.echo(
+                        f"Progress: {len(state.processed_ids)}/{state.total_count} "
+                        f"({state.get_progress_summary()['percent']}%)"
+                    )
                     click.echo(f"Stage: {state.current_stage}")
                     click.echo(f"Timestamp: {state.timestamp}")
                     click.echo("")

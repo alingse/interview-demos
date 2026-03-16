@@ -3,16 +3,15 @@
 import asyncio
 import logging
 import traceback
-from typing import Optional
 
-from luma.models.checkpoint import CheckpointState, PipelineStage, PipelineReport
-from luma.pipeline.checkpoint import CheckpointManager
-from luma.pipeline.reporter import PipelineReporter
 from luma.core.fetch import AnimeFetcher
-from luma.core.quality import QualityChecker
 from luma.core.match import WikidataMatcher
+from luma.core.quality import QualityChecker
 from luma.core.storage import Storage
 from luma.infrastructure.rate_limiter import ConcurrencyLimiter
+from luma.models.checkpoint import CheckpointState, PipelineReport, PipelineStage
+from luma.pipeline.checkpoint import CheckpointManager
+from luma.pipeline.reporter import PipelineReporter
 
 logger = logging.getLogger(__name__)
 
@@ -57,7 +56,7 @@ class PipelineOrchestrator:
         Returns:
             PipelineReport with execution results
         """
-        start_time = asyncio.get_event_loop().time()
+        # start_time = asyncio.get_event_loop().time()  # Unused
 
         # Initialize or load checkpoint
         if resume and self.checkpoint_manager.exists():
@@ -79,7 +78,7 @@ class PipelineOrchestrator:
 
             while state.pending_ids:
                 # Get next batch
-                batch_ids = list(state.pending_ids)[:self.batch_size]
+                batch_ids = list(state.pending_ids)[: self.batch_size]
 
                 # Move to in-progress
                 state.in_progress_ids.update(batch_ids)
@@ -88,7 +87,8 @@ class PipelineOrchestrator:
 
                 logger.info(
                     f"Processing batch {state.current_batch_index}: "
-                    f"{len(batch_ids)} items (total: {len(state.processed_ids)}/{state.total_count})"
+                    f"{len(batch_ids)} items "
+                    f"(total: {len(state.processed_ids)}/{state.total_count})"
                 )
 
                 # Process batch
@@ -105,7 +105,9 @@ class PipelineOrchestrator:
             # Generate report
             report = await self.reporter.generate(state, resumed=resume)
 
-            logger.info(f"Pipeline complete: {report.successful} successful, {report.failed} failed")
+            logger.info(
+                f"Pipeline complete: {report.successful} successful, " f"{report.failed} failed"
+            )
 
             return report
 
@@ -171,7 +173,10 @@ class PipelineOrchestrator:
                 if quality_result.passed:
                     self.checkpoint_manager.update_stats(state, quality_passed_increment=1)
                 else:
-                    logger.debug(f"Anime {anime_id} failed quality check: {quality_result.overall_reason}")
+                    logger.debug(
+                        f"Anime {anime_id} failed quality check: "
+                        f"{quality_result.overall_reason}"
+                    )
                     self.checkpoint_manager.update_stats(state, quality_failed_increment=1)
                     await self.storage.mark_anime_failed(anime_id)
                     state.processed_ids.add(anime_id)

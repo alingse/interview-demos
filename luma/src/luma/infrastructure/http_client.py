@@ -2,7 +2,7 @@
 
 import asyncio
 import logging
-from typing import Optional, Any, Dict
+from typing import Any
 
 import httpx
 
@@ -17,13 +17,13 @@ class HttpClient:
         timeout: float = 30.0,
         max_retries: int = 3,
         retry_delay: float = 1.0,
-        base_url: Optional[str] = None,
+        base_url: str | None = None,
     ):
         self.timeout = timeout
         self.max_retries = max_retries
         self.retry_delay = retry_delay
         self.base_url = base_url
-        self._client: Optional[httpx.AsyncClient] = None
+        self._client: httpx.AsyncClient | None = None
 
     async def get_client(self) -> httpx.AsyncClient:
         """Get or create HTTP client."""
@@ -46,10 +46,10 @@ class HttpClient:
     async def get(
         self,
         url: str,
-        params: Optional[Dict[str, Any]] = None,
-        headers: Optional[Dict[str, str]] = None,
-        retry_on: Optional[list[int]] = None,
-    ) -> Optional[Dict[str, Any]]:
+        params: dict[str, Any] | None = None,
+        headers: dict[str, str] | None = None,
+        retry_on: list[int] | None = None,
+    ) -> dict[str, Any] | None:
         """Make GET request with retry logic.
 
         Args:
@@ -90,8 +90,7 @@ class HttpClient:
                 if e.response.status_code in retry_on and attempt < self.max_retries - 1:
                     wait_time = self.retry_delay * (2**attempt)
                     logger.warning(
-                        f"HTTP error {e.response.status_code}, "
-                        f"retrying in {wait_time}s"
+                        f"HTTP error {e.response.status_code}, " f"retrying in {wait_time}s"
                     )
                     await asyncio.sleep(wait_time)
                     continue
@@ -118,10 +117,10 @@ class HttpClient:
     async def get_batch(
         self,
         urls: list[str],
-        params: Optional[Dict[str, Any]] = None,
-        headers: Optional[Dict[str, str]] = None,
+        params: dict[str, Any] | None = None,
+        headers: dict[str, str] | None = None,
         concurrency: int = 5,
-    ) -> list[Optional[Dict[str, Any]]]:
+    ) -> list[dict[str, Any] | None]:
         """Make multiple GET requests concurrently.
 
         Args:
@@ -135,7 +134,7 @@ class HttpClient:
         """
         semaphore = asyncio.Semaphore(concurrency)
 
-        async def fetch_with_semaphore(url: str) -> Optional[Dict[str, Any]]:
+        async def fetch_with_semaphore(url: str) -> dict[str, Any] | None:
             async with semaphore:
                 return await self.get(url, params=params, headers=headers)
 
@@ -156,7 +155,7 @@ class JikanClient(HttpClient):
             retry_delay=2.0,
         )
 
-    async def get_anime(self, anime_id: int) -> Optional[Dict[str, Any]]:
+    async def get_anime(self, anime_id: int) -> dict[str, Any] | None:
         """Get anime by MAL ID.
 
         Args:
@@ -167,7 +166,7 @@ class JikanClient(HttpClient):
         """
         return await self.get(f"/anime/{anime_id}")
 
-    async def get_anime_batch(self, anime_ids: list[int]) -> list[Optional[Dict[str, Any]]]:
+    async def get_anime_batch(self, anime_ids: list[int]) -> list[dict[str, Any] | None]:
         """Get multiple anime by IDs.
 
         Args:

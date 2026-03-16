@@ -2,7 +2,6 @@
 
 import asyncio
 import time
-from typing import Optional
 
 
 class RateLimiter:
@@ -31,9 +30,7 @@ class RateLimiter:
             elapsed = now - self.last_update
 
             # Replenish tokens based on elapsed time
-            self.tokens = min(
-                self.burst, self.tokens + elapsed * self.rate
-            )
+            self.tokens = min(self.burst, self.tokens + elapsed * self.rate)
             self.last_update = now
 
             # Wait if we don't have enough tokens
@@ -42,9 +39,7 @@ class RateLimiter:
                 await asyncio.sleep(wait_time)
                 now = time.monotonic()
                 elapsed = now - self.last_update
-                self.tokens = min(
-                    self.burst, self.tokens + elapsed * self.rate
-                )
+                self.tokens = min(self.burst, self.tokens + elapsed * self.rate)
                 self.last_update = now
 
             # Deduct tokens

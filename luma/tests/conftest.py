@@ -1,14 +1,14 @@
 """Test fixtures and configuration."""
 
 import asyncio
-import pytest
 import tempfile
-from pathlib import Path
 
+import pytest
+
+from luma.core.quality import QualityChecker
 from luma.infrastructure.database import Database
 from luma.infrastructure.rate_limiter import RateLimiter
-from luma.core.quality import QualityChecker
-from luma.models.anime import Anime
+from luma.models.anime import Anime, AnimeSource, AnimeType  # noqa: F401
 
 
 @pytest.fixture
@@ -78,7 +78,3 @@ def event_loop():
     loop = asyncio.new_event_loop()
     yield loop
     loop.close()
-
-
-# Import models for fixtures
-from luma.models.anime import AnimeType, AnimeSource

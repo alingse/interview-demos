@@ -1,39 +1,43 @@
 """Tests for pipeline orchestration."""
 
-import pytest
-from unittest.mock import AsyncMock, MagicMock, patch
-
-from luma.pipeline.orchestrator import PipelineOrchestrator
-from luma.pipeline.checkpoint import CheckpointManager
-from luma.pipeline.reporter import PipelineReporter
-from luma.core.fetch import AnimeFetcher
-from luma.core.quality import QualityChecker
-from luma.core.match import WikidataMatcher
-from luma.core.storage import Storage
-from luma.models.checkpoint import PipelineStage
-from luma.models.anime import Anime
 import tempfile
+from unittest.mock import AsyncMock, MagicMock
+
+import pytest
+
+from luma.core.fetch import AnimeFetcher
+from luma.core.match import WikidataMatcher
+from luma.core.quality import QualityChecker
+from luma.core.storage import Storage
+from luma.models.anime import Anime
+from luma.pipeline.checkpoint import CheckpointManager
+from luma.pipeline.orchestrator import PipelineOrchestrator
+from luma.pipeline.reporter import PipelineReporter
 
 
 @pytest.fixture
 def mock_components():
     """Create mocked pipeline components."""
     mock_fetcher = MagicMock(spec=AnimeFetcher)
-    mock_fetcher.fetch_anime = AsyncMock(return_value=Anime(
-        mal_id=1,
-        title="Test Anime",
-        episodes=12,
-        score=8.5,
-        year=2020,
-    ))
+    mock_fetcher.fetch_anime = AsyncMock(
+        return_value=Anime(
+            mal_id=1,
+            title="Test Anime",
+            episodes=12,
+            score=8.5,
+            year=2020,
+        )
+    )
     mock_fetcher.close = AsyncMock()
 
     mock_quality = MagicMock(spec=QualityChecker)
-    from luma.models.quality import QualityResult
+    from luma.models.quality import QualityResult  # noqa: F401
+
     mock_quality.check = MagicMock(return_value=QualityResult.pass_result())
 
     mock_matcher = MagicMock(spec=WikidataMatcher)
-    from luma.models.match import MatchResult, MatchMethod
+    from luma.models.match import MatchMethod, MatchResult  # noqa: F401
+
     mock_matcher.match = AsyncMock(return_value=MatchResult.no_match())
     mock_matcher.close = AsyncMock()
 

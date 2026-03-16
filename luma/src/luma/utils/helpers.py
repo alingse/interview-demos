@@ -1,11 +1,12 @@
 """Helper functions."""
 
-from typing import Iterator, List, TypeVar
+from collections.abc import Iterator
+from typing import TypeVar
 
 T = TypeVar("T")
 
 
-def batched(iterable: List[T], batch_size: int) -> Iterator[List[T]]:
+def batched(iterable: list[T], batch_size: int) -> Iterator[list[T]]:
     """Split list into batches.
 
     Args:
@@ -16,4 +17,4 @@ def batched(iterable: List[T], batch_size: int) -> Iterator[List[T]]:
         Batches of the specified size
     """
     for i in range(0, len(iterable), batch_size):
-        yield iterable[i:i + batch_size]
+        yield iterable[i : i + batch_size]

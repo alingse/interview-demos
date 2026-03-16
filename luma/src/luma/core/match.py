@@ -1,12 +1,10 @@
 """Wikidata matching for anime."""
 
-import json
 import logging
-from typing import Optional
 
-from luma.models.anime import Anime
-from luma.models.match import MatchResult, MatchMethod
 from luma.infrastructure.http_client import HttpClient
+from luma.models.anime import Anime
+from luma.models.match import MatchMethod, MatchResult
 
 logger = logging.getLogger(__name__)
 
@@ -24,7 +22,7 @@ class WikidataMatcher:
     WIKIDATA_API_URL = "https://www.wikidata.org/w/api.php"
     WIKIDATA_SPARQL_URL = "https://query.wikidata.org/sparql"
 
-    def __init__(self, http_client: Optional[HttpClient] = None):
+    def __init__(self, http_client: HttpClient | None = None):
         self.client = http_client or HttpClient()
 
     async def match(self, anime: Anime) -> MatchResult:
@@ -58,7 +56,7 @@ class WikidataMatcher:
 
         return MatchResult.no_match()
 
-    async def _match_by_id(self, anime: Anime) -> Optional[MatchResult]:
+    async def _match_by_id(self, anime: Anime) -> MatchResult | None:
         """Match by exact MAL ID property.
 
         Args:
@@ -101,7 +99,7 @@ class WikidataMatcher:
 
         return None
 
-    async def _match_by_title_and_year(self, anime: Anime) -> Optional[MatchResult]:
+    async def _match_by_title_and_year(self, anime: Anime) -> MatchResult | None:
         """Match by exact title and year.
 
         Args:
@@ -149,7 +147,7 @@ class WikidataMatcher:
 
         return None
 
-    async def _match_by_fuzzy_title(self, anime: Anime) -> Optional[MatchResult]:
+    async def _match_by_fuzzy_title(self, anime: Anime) -> MatchResult | None:
         """Match by fuzzy title similarity.
 
         Note: This is a simplified implementation. A full implementation would:
@@ -204,7 +202,7 @@ class WikidataMatcher:
 
         return None
 
-    async def _match_multi_field(self, anime: Anime) -> Optional[MatchResult]:
+    async def _match_multi_field(self, anime: Anime) -> MatchResult | None:
         """Match using multiple fields.
 
         Args:
@@ -258,9 +256,10 @@ class WikidataMatcher:
                         best_confidence = confidence
 
                 if best_match:
+                    display_label = best_match.get("display", {}).get("label", {}).get("value", "")
                     return MatchResult(
                         wikidata_id=best_match.get("id"),
-                        wikidata_label=best_match.get("display", {}).get("label", {}).get("value", ""),
+                        wikidata_label=display_label,
                         confidence=best_confidence,
                         match_method=MatchMethod.MULTI_FIELD,
                         match_metadata={
@@ -275,7 +274,7 @@ class WikidataMatcher:
 
         return None
 
-    async def _sparql_query(self, query: str) -> Optional[dict]:
+    async def _sparql_query(self, query: str) -> dict | None:
         """Execute SPARQL query.
 
         Args:

@@ -1,10 +1,10 @@
 """Tests for data fetching module."""
 
-import pytest
 from unittest.mock import AsyncMock, MagicMock
 
+import pytest
+
 from luma.core.fetch import AnimeFetcher
-from luma.infrastructure.rate_limiter import RateLimiter
 
 
 @pytest.mark.asyncio
@@ -12,20 +12,22 @@ async def test_fetch_anime_success():
     """Test successful anime fetch."""
     # Mock client
     mock_client = MagicMock()
-    mock_client.get_anime = AsyncMock(return_value={
-        "data": {
-            "mal_id": 1,
-            "title": "Test Anime",
-            "episodes": 12,
-            "score": 8.5,
-            "type": "TV",
-            "source": "Manga",
-            "aired": {"from": "2020-01-01"},
-            "studios": [{"name": "Test Studio"}],
-            "genres": [{"name": "Action"}],
-            "titles": [],
+    mock_client.get_anime = AsyncMock(
+        return_value={
+            "data": {
+                "mal_id": 1,
+                "title": "Test Anime",
+                "episodes": 12,
+                "score": 8.5,
+                "type": "TV",
+                "source": "Manga",
+                "aired": {"from": "2020-01-01"},
+                "studios": [{"name": "Test Studio"}],
+                "genres": [{"name": "Action"}],
+                "titles": [],
+            }
         }
-    })
+    )
 
     fetcher = AnimeFetcher(client=mock_client)
     anime = await fetcher.fetch_anime(1)
@@ -52,20 +54,22 @@ async def test_fetch_anime_not_found():
 async def test_fetch_anime_batch():
     """Test batch fetching."""
     mock_client = MagicMock()
-    mock_client.get_anime = AsyncMock(return_value={
-        "data": {
-            "mal_id": 1,
-            "title": "Test Anime",
-            "episodes": 12,
-            "score": 8.5,
-            "type": "TV",
-            "source": "Manga",
-            "aired": {"from": "2020-01-01"},
-            "studios": [],
-            "genres": [],
-            "titles": [],
+    mock_client.get_anime = AsyncMock(
+        return_value={
+            "data": {
+                "mal_id": 1,
+                "title": "Test Anime",
+                "episodes": 12,
+                "score": 8.5,
+                "type": "TV",
+                "source": "Manga",
+                "aired": {"from": "2020-01-01"},
+                "studios": [],
+                "genres": [],
+                "titles": [],
+            }
         }
-    })
+    )
 
     fetcher = AnimeFetcher(client=mock_client)
     results = await fetcher.fetch_anime_batch([1, 2, 3], batch_size=2)

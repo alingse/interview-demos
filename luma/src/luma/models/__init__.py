@@ -1,14 +1,14 @@
 """Luma data models."""
 
 from luma.models.anime import Anime, AnimeSource, AnimeType
-from luma.models.quality import QualityResult, QualityRule, RuleViolation
-from luma.models.match import MatchResult, MatchMethod
 from luma.models.checkpoint import (
     CheckpointState,
     PipelineStage,
     PipelineStats,
     ProcessingError,
 )
+from luma.models.match import MatchMethod, MatchResult
+from luma.models.quality import QualityResult, QualityRule, RuleViolation
 
 __all__ = [
     "Anime",

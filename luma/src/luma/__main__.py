@@ -1,7 +1,6 @@
 """Main entry point for python -m luma."""
 
 import sys
-import asyncio
 
 from luma.cli import main
 

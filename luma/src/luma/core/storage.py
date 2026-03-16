@@ -2,12 +2,11 @@
 
 import json
 import logging
-from typing import Optional
 
 from luma.infrastructure.database import Database
 from luma.models.anime import Anime
-from luma.models.quality import QualityResult
 from luma.models.match import MatchResult
+from luma.models.quality import QualityResult
 
 logger = logging.getLogger(__name__)
 
@@ -118,7 +117,7 @@ class Storage:
         """
         await self.db.update_anime_status(mal_id, "failed")
 
-    async def get_anime_db_id(self, mal_id: int) -> Optional[int]:
+    async def get_anime_db_id(self, mal_id: int) -> int | None:
         """Get database ID for MAL ID.
 
         Args:
@@ -141,7 +140,7 @@ class Storage:
     async def export_data(
         self,
         filter_type: str = "all",
-        limit: Optional[int] = None,
+        limit: int | None = None,
     ) -> list[dict]:
         """Export anime data.
 
@@ -164,11 +163,11 @@ class Storage:
 
     async def log_error(
         self,
-        anime_id: Optional[int],
+        anime_id: int | None,
         stage: str,
         error_type: str,
         error_message: str,
-        stack_trace: Optional[str] = None,
+        stack_trace: str | None = None,
     ) -> int:
         """Log processing error.
 

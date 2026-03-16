@@ -4,7 +4,7 @@ import logging
 import sys
 
 
-def setup_logging(level: str = "INFO", log_format: Optional[str] = None) -> None:
+def setup_logging(level: str = "INFO", log_format: str | None = None) -> None:
     """Setup logging configuration.
 
     Args:

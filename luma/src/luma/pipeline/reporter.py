@@ -2,7 +2,6 @@
 
 import logging
 from datetime import datetime
-from typing import Optional
 
 from luma.models.checkpoint import CheckpointState, PipelineReport
 
@@ -89,12 +88,14 @@ class PipelineReporter:
         ]
 
         if report.errors:
-            lines.extend([
-                "",
-                "-" * 60,
-                "ERRORS",
-                "-" * 60,
-            ])
+            lines.extend(
+                [
+                    "",
+                    "-" * 60,
+                    "ERRORS",
+                    "-" * 60,
+                ]
+            )
             for error in report.errors[-10:]:  # Show last 10 errors
                 anime_str = f"Anime {error.anime_id}" if error.anime_id else "General"
                 lines.append(f"{anime_str} [{error.stage}]: {error.error_message}")

@@ -1,7 +1,6 @@
 """Quality checking for anime data."""
 
 import logging
-from typing import Optional
 
 from luma.models.anime import Anime
 from luma.models.quality import QualityResult, QualityRule, RuleViolation
@@ -25,7 +24,7 @@ class QualityChecker:
     # Invalid title patterns
     INVALID_TITLE_PATTERNS = ["tba", "n/a", "tbd", "unknown"]
 
-    def __init__(self, current_year: Optional[int] = None):
+    def __init__(self, current_year: int | None = None):
         """Initialize quality checker.
 
         Args:
@@ -97,7 +96,8 @@ class QualityChecker:
                     RuleViolation(
                         rule=QualityRule.VALUE_RANGE,
                         field="score",
-                        message=f"Score {anime.score} not in valid range [{self.MIN_SCORE}, {self.MAX_SCORE}]",
+                        message=f"Score {anime.score} not in valid range [{self.MIN_SCORE}, "
+                        f"{self.MAX_SCORE}]",
                     )
                 )
 
@@ -108,7 +108,8 @@ class QualityChecker:
                     RuleViolation(
                         rule=QualityRule.VALUE_RANGE,
                         field="episodes",
-                        message=f"Episodes {anime.episodes} not in valid range [{self.MIN_EPISODES}, {self.MAX_EPISODES}]",
+                        message=f"Episodes {anime.episodes} not in valid range "
+                        f"[{self.MIN_EPISODES}, {self.MAX_EPISODES}]",
                     )
                 )
 
@@ -119,7 +120,8 @@ class QualityChecker:
                     RuleViolation(
                         rule=QualityRule.VALUE_RANGE,
                         field="year",
-                        message=f"Year {anime.year} not in valid range [{self.MIN_YEAR}, {self.max_year}]",
+                        message=f"Year {anime.year} not in valid range "
+                        f"[{self.MIN_YEAR}, {self.max_year}]",
                     )
                 )
 
